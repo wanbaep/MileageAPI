@@ -1,5 +1,9 @@
 package com.wanbaep.membership.controller;
 
+import com.wanbaep.membership.domain.Membership;
+import com.wanbaep.membership.dto.ApiResponseDto;
+import com.wanbaep.membership.dto.MembershipPointUpdateRequestDto;
+import com.wanbaep.membership.dto.MembershipResponseDto;
 import com.wanbaep.membership.dto.MembershipSaveRequestDto;
 import com.wanbaep.membership.service.MembershipService;
 import lombok.RequiredArgsConstructor;
@@ -13,32 +17,49 @@ import javax.annotation.Resource;
 @RestController
 @RequestMapping("api/v1")
 public class MembershipApiController {
-    @Resource(name= "membershipService")
     private final MembershipService membershipService;
 
+    //TODO: 구현해야함
     @GetMapping("membership")
     public ResponseEntity<?> getMembership() {
         return new ResponseEntity<>("GET", HttpStatus.OK);
     }
 
+    //TODO: 중복 userId membershipId 등록 불가 기능
     @PostMapping("membership")  //@RequestBody
-    public Long registerMembership(@RequestBody MembershipSaveRequestDto requestDto) {
-//        return new ResponseEntity<>("POST", HttpStatus.OK);
-        return membershipService.save(requestDto);
+    public ResponseEntity<?> registerMembership(
+            @RequestHeader(value="X-USER-ID") String userId,
+            @RequestBody MembershipSaveRequestDto requestDto) {
+
+        MembershipResponseDto responseDto = membershipService.save(userId, requestDto);
+        ApiResponseDto apiResponseDto = new ApiResponseDto(true, responseDto, null);
+        return new ResponseEntity<>(apiResponseDto, HttpStatus.OK);
     }
 
+    //TODO: 구현해야함
     @DeleteMapping("membership/{membershipId}")
-    public ResponseEntity<?> deactivateMembership(@PathVariable("membershipId") String membershipId) {
-        return new ResponseEntity<>("DELETE", HttpStatus.OK);
+    public ResponseEntity<?> deactivateMembership(
+            @RequestHeader(value="X-USER-ID") String userId,
+            @PathVariable("membershipId") String membershipId) {
+        ApiResponseDto apiResponseDto = new ApiResponseDto(true, true, null);
+        return new ResponseEntity<>(apiResponseDto, HttpStatus.OK);
     }
 
     @GetMapping("membership/{membershipId}")
-    public ResponseEntity<?> retrieveMembershipById(@PathVariable("membershipId") String membershipId) {
-        return new ResponseEntity<>("GET", HttpStatus.OK);
+    public ResponseEntity<?> retrieveMembershipById(
+            @RequestHeader(value="X-USER-ID") String userId,
+            @PathVariable("membershipId") String membershipId) {
+        MembershipResponseDto responseDto = membershipService.findById(userId, membershipId);
+        ApiResponseDto apiResponseDto = new ApiResponseDto(true, responseDto, null);
+        return new ResponseEntity<>(apiResponseDto, HttpStatus.OK);
     }
 
     @PutMapping("membership/point") //@RequestBody
-    public ResponseEntity<?> accumulatePoint() {
-        return new ResponseEntity<>("PUT", HttpStatus.OK);
+    public ResponseEntity<?> accumulatePoint(
+            @RequestHeader(value="X-USER-ID") String userId,
+            @RequestBody MembershipPointUpdateRequestDto requestDto) {
+        MembershipResponseDto responseDto = membershipService.update(userId, requestDto);
+        ApiResponseDto apiResponseDto = new ApiResponseDto(true, true, null);
+        return new ResponseEntity<>(apiResponseDto, HttpStatus.OK);
     }
 }

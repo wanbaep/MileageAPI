@@ -29,7 +29,7 @@ public class MembershipRepositoryTest {
         String membershipId = "spc";
         String membershipName = "happypoint";
         String membershipStatus = "Y";
-        String point = "120";
+        int point = 120;
 
         membershipRepository.save(Membership.builder()
                 .userId(userId)

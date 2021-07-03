@@ -10,21 +10,21 @@ import lombok.NoArgsConstructor;
 public class MembershipSaveRequestDto {
     private String membershipId;
     private String membershipName;
-    private String point;
+    private int point;
 
     @Builder
-    public MembershipSaveRequestDto(String membershipId, String membershipName, String point) {
+    public MembershipSaveRequestDto(String membershipId, String membershipName, int point) {
         this.membershipId = membershipId;
         this.membershipName = membershipName;
         this.point = point;
     }
 
-    public Membership toEntity() {
+    public Membership toEntity(String userId) {
         return Membership.builder()
                 .membershipId(membershipId)
                 .membershipName(membershipName)
                 .point(point)
-                .userId("test1")
+                .userId(userId)
                 .membershipStatus("Y")
                 .build();
     }

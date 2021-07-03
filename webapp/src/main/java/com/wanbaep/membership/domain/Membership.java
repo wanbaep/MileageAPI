@@ -31,14 +31,18 @@ public class Membership {
     private String membershipStatus;
 
     @Column(nullable = false)
-    private String point;
+    private int point;
 
     @Builder
-    public Membership(String userId, String membershipId, String membershipName, String membershipStatus, String point) {
+    public Membership(String userId, String membershipId, String membershipName, String membershipStatus, int point) {
         this.userId = userId;
         this.membershipId = membershipId;
         this.membershipName = membershipName;
         this.membershipStatus = membershipStatus;
         this.point = point;
+    }
+
+    public void update(String membershipId, int amount) {
+        this.point += amount;
     }
 }
