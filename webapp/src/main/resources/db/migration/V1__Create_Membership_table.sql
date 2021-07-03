@@ -7,6 +7,6 @@ CREATE TABLE membership (
      membershipStatus varchar(255),
      point varchar(255)
 );
-
-INSERT INTO membership(seq, membershipId, userId, membershipName, startDate, membershipStatus, point)
-VALUES ('1', 'spc', 'test1', 'sinshegae', NOW(), 'Y', '1000');
+--
+-- INSERT INTO membership(seq, membershipId, userId, membershipName, startDate, membershipStatus, point)
+-- VALUES ('1', 'spc', 'test1', 'sinshegae', NOW(), 'Y', '1000');
