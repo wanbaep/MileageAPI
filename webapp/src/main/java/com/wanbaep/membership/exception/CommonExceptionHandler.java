@@ -73,4 +73,13 @@ public class CommonExceptionHandler {
         ApiResponseDto responseDto = new ApiResponseDto(false, null, error);
         return new ResponseEntity<>(responseDto, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(MembershipDisabledException.class)
+    public ResponseEntity<?> handleMembershipDisabledException(MembershipDisabledException e) {
+        ErrorResponse error = new ErrorResponse();
+        error.setMessage(e.getMessage());
+        error.setStatus(e.getStatus().value());
+        ApiResponseDto responseDto = new ApiResponseDto(false, null, error);
+        return new ResponseEntity<>(responseDto, HttpStatus.BAD_REQUEST);
+    }
 }

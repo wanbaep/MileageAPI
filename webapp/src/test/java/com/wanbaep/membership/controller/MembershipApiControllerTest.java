@@ -171,12 +171,12 @@ public class MembershipApiControllerTest {
                 .build());
 
         String expectedMembershipId = savedMembership.getMembershipId();
-        int updatePoint = 250;
-        int expectedPoint = savedMembership.getPoint() + updatePoint;
+        int amount = 250;
+        int expectedPoint = savedMembership.getPoint() + (int)(amount * 0.01);
 
         MembershipPointUpdateRequestDto requestDto = MembershipPointUpdateRequestDto.builder()
                 .membershipId(expectedMembershipId)
-                .amount(updatePoint)
+                .amount(amount)
                 .build();
 
         String url = "http://localhost:" + port + "/api/v1/membership/point";

@@ -1,9 +1,11 @@
 package com.wanbaep.membership.exception;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wanbaep.membership.domain.Membership;
 import com.wanbaep.membership.domain.MembershipRepository;
 import com.wanbaep.membership.dto.ApiResponseDto;
 import com.wanbaep.membership.dto.ErrorResponse;
+import com.wanbaep.membership.dto.MembershipPointUpdateRequestDto;
 import com.wanbaep.membership.dto.MembershipSaveRequestDto;
 import org.junit.After;
 import org.junit.Before;
@@ -18,8 +20,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -99,6 +100,38 @@ public class CommonExceptionHandlerTest {
 
         String url = "http://localhost:" + port + "/api/v1/membership";
         mvc.perform(post(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-USER-ID", userId)
+                .header("Content-Type", "application/json")
+                .content(new ObjectMapper().writeValueAsString(requestDto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(new ObjectMapper().writeValueAsString(response)));
+    }
+
+    @Test
+    public void handleMembershipDisabledException() throws Exception {
+        String userId = "test1";
+        String membershipId = "cj";
+        String membershipName = "cjone";
+        int point = 1200;
+        membershipRepository.save(Membership.builder()
+                .userId(userId)
+                .membershipId(membershipId)
+                .membershipName(membershipName)
+                .point(point)
+                .membershipStatus("N")
+                .build());
+
+        MembershipPointUpdateRequestDto requestDto = MembershipPointUpdateRequestDto.builder()
+                .membershipId(membershipId)
+                .amount(100)
+                .build();
+
+        String message = "Disabled Membership";
+        ApiResponseDto response = createExpectResponse(400, message);
+
+        String url = "http://localhost:" + port + "/api/v1/membership/point";
+        mvc.perform(put(url)
                 .contentType(MediaType.APPLICATION_JSON)
                 .header("X-USER-ID", userId)
                 .header("Content-Type", "application/json")

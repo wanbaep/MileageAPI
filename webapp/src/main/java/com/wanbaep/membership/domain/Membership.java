@@ -39,10 +39,20 @@ public class Membership extends BaseTimeEntity {
     }
 
     public void update(int amount) {
-        this.point += amount;
+        this.point += (int)(amount * 0.01);    //1%
     }
 
     public void disable() {
         this.membershipStatus = "N";
+    }
+
+    public boolean isEnabled() {
+        return "Y".equals(this.membershipStatus);
+    }
+
+    public void enable(String membershipName, int point) {
+        this.membershipStatus = "Y";
+        this.membershipName = membershipName;
+        this.point = point;
     }
 }
