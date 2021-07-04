@@ -1,9 +1,7 @@
 package com.wanbaep.membership.controller;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.type.TypeFactory;
+import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.wanbaep.membership.domain.Membership;
 import com.wanbaep.membership.domain.MembershipRepository;
 import com.wanbaep.membership.dto.ApiResponseDto;
@@ -11,20 +9,28 @@ import com.wanbaep.membership.dto.MembershipPointUpdateRequestDto;
 import com.wanbaep.membership.dto.MembershipResponseDto;
 import com.wanbaep.membership.dto.MembershipSaveRequestDto;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 
-import java.util.Arrays;
+import java.time.LocalDateTime;
+import java.util.LinkedList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.InstanceOfAssertFactories.map;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -37,6 +43,24 @@ public class MembershipApiControllerTest {
 
     @Autowired
     private MembershipRepository membershipRepository;
+
+    @Autowired
+    private WebApplicationContext context;
+
+    private MockMvc mvc;
+    private ObjectMapper objectMapper;
+
+    @Before
+    public void setup() {
+        mvc = MockMvcBuilders
+                .webAppContextSetup(context)
+                .build();
+        SimpleModule simpleModule = new SimpleModule();
+        simpleModule.addSerializer(LocalDateTime.class, new CustomLocalDateTimeSerializer());
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(simpleModule);
+        JacksonTester.initFields(this, objectMapper);
+    }
 
     @After
     public void tearDown() throws Exception {
@@ -57,37 +81,29 @@ public class MembershipApiControllerTest {
     @Test
     public void getMembershipListByUserId() throws Exception {
         String userId = "test1";
-        saveMember("test1", "cj", "cjone");
-        saveMember("test1", "spc", "happypoint");
+        List<MembershipResponseDto> expectMemberDtoList = new LinkedList<>();
+        expectMemberDtoList.add(new MembershipResponseDto(
+                saveMember("test1", "cj", "cjone")));
+        expectMemberDtoList.add(new MembershipResponseDto(
+                saveMember("test1", "spc", "happypoint")));
         saveMember("test2", "cj", "cjone");
 
         String url = "http://localhost:" + port + "/api/v1/membership";
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-USER-ID", userId);
-        headers.set("Content-Type", "application/json");
-        HttpEntity<MembershipPointUpdateRequestDto> requestEntity = new HttpEntity<>(headers);
 
-        //when
-        ResponseEntity<ApiResponseDto> responseEntity = restTemplate.exchange(url, HttpMethod.GET, requestEntity, ApiResponseDto.class);
+        ApiResponseDto apiResponseDto = new ApiResponseDto();
+        apiResponseDto.setSuccess(true);
+        apiResponseDto.setError(null);
+        apiResponseDto.setResponse(expectMemberDtoList);
 
-        //then
-        ApiResponseDto responseBody = responseEntity.getBody();
-        System.out.println(responseBody.getResponse());
-        System.out.println(responseBody.getResponse().toString());
+        mvc.perform(get(url)
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("X-USER-ID", userId)
+                .header("Content-Type", "application/json"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(objectMapper.writeValueAsString(apiResponseDto)));
 
-//        ObjectMapper mapper = new ObjectMapper();
-//        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false); //파라미터Map에서 DTO에 들어있지 않는 변수가 있어도 무시함.
-//
-//        List<MembershipResponseDto> responseDtoList =
-//                mapper.convertValue(responseBody.getResponse(), TypeFactory.defaultInstance().constructCollectionType(List.class, MembershipResponseDto.class));
-
-//        List<MembershipResponseDto> responseDtoList = mapper.readValue(
-//                responseBody.getResponse().toString(),
-//                new TypeReference<List<MembershipResponseDto>>(){});
-
-        assertThat(responseBody.getSuccess()).isEqualTo(true);
-        assertThat(responseBody.getError()).isEqualTo(null);
-//        assertThat(responseDtoList.size()).isEqualTo(2);
+        List<Membership> membershipList = membershipRepository.findByUserId(userId);
+        assertThat(membershipList.size()).isEqualTo(2);
     }
 
     @Test
