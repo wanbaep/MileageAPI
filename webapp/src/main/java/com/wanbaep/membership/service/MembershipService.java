@@ -5,7 +5,11 @@ import com.wanbaep.membership.domain.MembershipRepository;
 import com.wanbaep.membership.dto.MembershipPointUpdateRequestDto;
 import com.wanbaep.membership.dto.MembershipResponseDto;
 import com.wanbaep.membership.dto.MembershipSaveRequestDto;
+import com.wanbaep.membership.exception.DuplicateMembershipException;
+import com.wanbaep.membership.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -16,9 +20,12 @@ import java.util.List;
 @Service
 public class MembershipService {
     private final MembershipRepository membershipRepository;
+    Logger logger = LoggerFactory.getLogger(MembershipService.class);
+
 
     public List<MembershipResponseDto> findByUserId(String userId) {
         List<Membership> entityList = membershipRepository.findByUserId(userId);
+        logger.debug("findByUserId size({})", entityList.size());
         List<MembershipResponseDto> responseDtoList = new LinkedList<>();
         for(Membership entity : entityList) {
             responseDtoList.add(new MembershipResponseDto(entity));
@@ -28,31 +35,36 @@ public class MembershipService {
 
     @Transactional
     public MembershipResponseDto save(String userId, MembershipSaveRequestDto requestDto) {
-        //TODO: userId & membershipId 같은 것이 있는지 읽어서 확인..?
-//        Membership entity = membershipRepository.findByUserIdAndMembershipId(userId, requestDto.getMembershipId())
-//                .orElseThrow(() -> new IllegalArgumentException("해당 사용자의 멤버십 아이디가 없습니다. userId=" + userId + " membershipId="+ membershipId));
-        Membership entity = membershipRepository.save(requestDto.toEntity(userId));
-        return new MembershipResponseDto(entity);
+        Membership entity = membershipRepository.findByUserIdAndMembershipId(userId, requestDto.getMembershipId()).orElse(null);
+        if(entity != null) {
+            logger.error("Duplicate Membership Found. userId({}), membershipId({})", userId, requestDto.getMembershipName());
+            throw new DuplicateMembershipException("Duplicated membership, userId(" + userId + "), membershipId("+ requestDto.getMembershipId()+")");
+        }
+        Membership savedEntity = membershipRepository.save(requestDto.toEntity(userId));
+        logger.info("Save Membership Success. userId({}), membershipId({})", userId, requestDto.getMembershipId());
+        return new MembershipResponseDto(savedEntity);
     }
 
     @Transactional
     public void disable(String userId, String membershipId) {
         Membership entity = membershipRepository.findByUserIdAndMembershipId(userId, membershipId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자의 멤버십 아이디가 없습니다. userId=" + userId + " membershipId="+ membershipId));
+                .orElseThrow(() -> new UserNotFoundException("Can not find userId("+userId+"), membershipId("+membershipId+")"));
         entity.disable();
+        logger.info("Disable Membership Success. userId({}), membershipId({})", userId, membershipId);
     }
 
-    public MembershipResponseDto findById(String userId, String membershipId) {
+    public MembershipResponseDto findByUserIdAndMembershipId(String userId, String membershipId) {
         Membership entity = membershipRepository.findByUserIdAndMembershipId(userId, membershipId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자의 멤버십 아이디가 없습니다. userId=" + userId + " membershipId="+ membershipId));
+                .orElseThrow(() -> new UserNotFoundException("Can not find userId("+userId+"), membershipId("+membershipId+")"));
         return new MembershipResponseDto(entity);
     }
 
     @Transactional
     public MembershipResponseDto update(String userId, MembershipPointUpdateRequestDto requestDto) {
         Membership membership = membershipRepository.findByUserIdAndMembershipId(userId, requestDto.getMembershipId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 없습니다. userId="+ userId));
-        membership.update(requestDto.getMembershipId(), requestDto.getAmount());
+                .orElseThrow(() -> new UserNotFoundException("Can not find userId("+userId+"), membershipId("+requestDto.getMembershipId()+")"));
+        membership.update(requestDto.getAmount());
+        logger.info("Accumulate Membership Point Success. userId({}), membershipId({}), point({})", userId, requestDto.getMembershipId(), membership.getPoint());
         return new MembershipResponseDto(membership);
     }
 }

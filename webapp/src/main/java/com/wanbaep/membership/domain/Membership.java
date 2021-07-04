@@ -38,7 +38,7 @@ public class Membership extends BaseTimeEntity {
         this.point = point;
     }
 
-    public void update(String membershipId, int amount) {
+    public void update(int amount) {
         this.point += amount;
     }
 
