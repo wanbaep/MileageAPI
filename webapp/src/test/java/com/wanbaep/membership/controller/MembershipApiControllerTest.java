@@ -1,9 +1,11 @@
 package com.wanbaep.membership.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wanbaep.membership.domain.Membership;
 import com.wanbaep.membership.domain.MembershipRepository;
 import com.wanbaep.membership.dto.ApiResponseDto;
 import com.wanbaep.membership.dto.MembershipPointUpdateRequestDto;
+import com.wanbaep.membership.dto.MembershipResponseDto;
 import com.wanbaep.membership.dto.MembershipSaveRequestDto;
 import org.junit.After;
 import org.junit.Test;
@@ -15,7 +17,9 @@ import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.*;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.lang.reflect.Member;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -55,14 +59,20 @@ public class MembershipApiControllerTest {
         HttpEntity<MembershipSaveRequestDto> requestEntity = new HttpEntity<>(requestDto, headers);
 
         //when
-        ResponseEntity<Membership> responseEntity = restTemplate.postForEntity(url, requestEntity, Membership.class);
+        ResponseEntity<ApiResponseDto> responseEntity = restTemplate.postForEntity(url, requestEntity, ApiResponseDto.class);
 
         //then
+        ApiResponseDto responseBody = responseEntity.getBody();
+        ObjectMapper mapper = new ObjectMapper();
+        MembershipResponseDto responseDto = mapper.convertValue(responseBody.getResponse(), MembershipResponseDto.class);
+
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(responseEntity.getBody().getUserId()).isEqualTo(userId);
-        assertThat(responseEntity.getBody().getMembershipId()).isEqualTo(membershipId);
-        assertThat(responseEntity.getBody().getMembershipName()).isEqualTo(membershipName);
-        assertThat(responseEntity.getBody().getPoint()).isEqualTo(point);
+        assertThat(responseBody.getSuccess()).isEqualTo(true);
+        assertThat(responseDto.getUserId()).isEqualTo(userId);
+        assertThat(responseDto.getMembershipId()).isEqualTo(membershipId);
+        assertThat(responseDto.getMembershipName()).isEqualTo(membershipName);
+        assertThat(responseDto.getPoint()).isEqualTo(point);
+        assertThat(responseBody.getError()).isEqualTo(null);
 
         List<Membership> all = membershipRepository.findAll();
         assertThat(all.get(0).getMembershipId()).isEqualTo(membershipId);
@@ -98,12 +108,15 @@ public class MembershipApiControllerTest {
         HttpEntity<MembershipPointUpdateRequestDto> requestEntity = new HttpEntity<>(requestDto, headers);
 
         //when
-        ResponseEntity<Membership> responseEntity = restTemplate.exchange(url, HttpMethod.PUT, requestEntity, Membership.class);
+        ResponseEntity<ApiResponseDto> responseEntity = restTemplate.exchange(url, HttpMethod.PUT, requestEntity, ApiResponseDto.class);
 
         //then
+        ApiResponseDto responseBody = responseEntity.getBody();
+
         assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(responseEntity.getBody().getMembershipId()).isEqualTo(expectedMembershipId);
-        assertThat(responseEntity.getBody().getUserId()).isEqualTo(userId);
+        assertThat(responseBody.getSuccess()).isEqualTo(true);
+        assertThat(responseBody.getResponse()).isEqualTo(true);
+        assertThat(responseBody.getError()).isEqualTo(null);
 
         List<Membership> all = membershipRepository.findAll();
         assertThat(all.get(0).getMembershipId()).isEqualTo(expectedMembershipId);

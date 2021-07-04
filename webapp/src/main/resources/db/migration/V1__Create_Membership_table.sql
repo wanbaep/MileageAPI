@@ -15,7 +15,7 @@ CREATE TABLE membership (
 -- INSERT INTO membership(membership_Id, user_Id, membership_Name, membership_Status, point) VALUES ('cj', 'test1', 'cjone', 'Y', 3500);
 
 
--- INSERT INTO membership(membership_Id, user_Id, membership_Name, membership_Status, point) VALUES
-('spc', 'test1', 'happypoint', 'Y', 1000),
-('shinsegae', 'test1', 'shinsegaepoint', 'Y', 3500),
-('cj', 'test1', 'cjone', 'Y', 3500);
+-- INSERT INTO membership(membership_Id, user_Id, membership_Name, membership_Status, point, start_Date) VALUES
+('spc', 'test1', 'happypoint', 'Y', 1000, NOW()),
+('shinsegae', 'test1', 'shinsegaepoint', 'Y', 3500, NOW()),
+('cj', 'test1', 'cjone', 'Y', 3500, NOW());

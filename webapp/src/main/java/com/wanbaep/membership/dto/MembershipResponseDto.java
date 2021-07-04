@@ -2,22 +2,28 @@ package com.wanbaep.membership.dto;
 
 import com.wanbaep.membership.domain.Membership;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
+@NoArgsConstructor
 @Getter
 public class MembershipResponseDto {
     private Long seq;
     private String membershipId;
-    private String membershipName;
     private String userId;
-    private int point;
+    private String membershipName;
+    private LocalDateTime startDate;
     private String membershipStatus;
+    private int point;
 
     public MembershipResponseDto(Membership entity) {
         this.seq = entity.getSeq();
         this.membershipId = entity.getMembershipId();
-        this.membershipName = entity.getMembershipName();
         this.userId = entity.getUserId();
-        this.point = entity.getPoint();
+        this.membershipName = entity.getMembershipName();
+        this.startDate = entity.getStartDate();
         this.membershipStatus = entity.getMembershipStatus();
+        this.point = entity.getPoint();
     }
 }

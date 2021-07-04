@@ -5,12 +5,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
-import java.util.Date;
 
 @Getter
 @NoArgsConstructor
 @Entity
-public class Membership {
+public class Membership extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long seq;
@@ -23,9 +22,6 @@ public class Membership {
 
     @Column(nullable = false)
     private String membershipName;
-
-//    @Column(nullable = true)
-//    private Date startDate;
 
     @Column(nullable = false)
     private String membershipStatus;
