@@ -1,6 +1,5 @@
 package com.wanbaep.membership.controller;
 
-import com.wanbaep.membership.domain.Membership;
 import com.wanbaep.membership.dto.ApiResponseDto;
 import com.wanbaep.membership.dto.MembershipPointUpdateRequestDto;
 import com.wanbaep.membership.dto.MembershipResponseDto;
@@ -11,7 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import javax.annotation.Resource;
+import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
@@ -19,10 +18,12 @@ import javax.annotation.Resource;
 public class MembershipApiController {
     private final MembershipService membershipService;
 
-    //TODO: 구현해야함
     @GetMapping("membership")
-    public ResponseEntity<?> getMembership() {
-        return new ResponseEntity<>("GET", HttpStatus.OK);
+    public ResponseEntity<?> getMembershipListByUserId(
+            @RequestHeader(value="X-USER-ID") String userId) {
+        List<MembershipResponseDto> responseDtoList = membershipService.findByUserId(userId);
+        ApiResponseDto apiResponseDto = new ApiResponseDto(true, responseDtoList, null);
+        return new ResponseEntity<>(apiResponseDto, HttpStatus.OK);
     }
 
     //TODO: 중복 userId membershipId 등록 불가 기능
@@ -46,7 +47,7 @@ public class MembershipApiController {
     }
 
     @GetMapping("membership/{membershipId}")
-    public ResponseEntity<?> retrieveMembershipById(
+    public ResponseEntity<?> getMembershipByIdAndByMembershipId(
             @RequestHeader(value="X-USER-ID") String userId,
             @PathVariable("membershipId") String membershipId) {
         MembershipResponseDto responseDto = membershipService.findById(userId, membershipId);
