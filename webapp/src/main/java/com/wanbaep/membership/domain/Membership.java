@@ -45,4 +45,8 @@ public class Membership {
     public void update(String membershipId, int amount) {
         this.point += amount;
     }
+
+    public void disable() {
+        this.membershipStatus = "N";
+    }
 }

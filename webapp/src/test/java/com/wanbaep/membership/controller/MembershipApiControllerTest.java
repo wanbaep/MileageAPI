@@ -2,6 +2,7 @@ package com.wanbaep.membership.controller;
 
 import com.wanbaep.membership.domain.Membership;
 import com.wanbaep.membership.domain.MembershipRepository;
+import com.wanbaep.membership.dto.ApiResponseDto;
 import com.wanbaep.membership.dto.MembershipPointUpdateRequestDto;
 import com.wanbaep.membership.dto.MembershipSaveRequestDto;
 import org.junit.After;
@@ -107,5 +108,42 @@ public class MembershipApiControllerTest {
         List<Membership> all = membershipRepository.findAll();
         assertThat(all.get(0).getMembershipId()).isEqualTo(expectedMembershipId);
         assertThat(all.get(0).getPoint()).isEqualTo(expectedPoint);
+    }
+
+    @Test
+    public void disableMembership() throws Exception {
+        String userId = "test1";
+        String membershipId = "cj";
+        Membership savedMembership = membershipRepository.save(Membership.builder()
+                .membershipId(membershipId)
+                .membershipName("cjone")
+                .point(1200)
+                .userId(userId)
+                .membershipStatus("Y")
+                .build());
+
+        String url = "http://localhost:" + port + "/api/v1/membership/" + membershipId;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("X-USER-ID", userId);
+        headers.set("Content-Type", "application/json");
+        HttpEntity<MembershipPointUpdateRequestDto> requestEntity = new HttpEntity<>(headers);
+
+        //when
+        ResponseEntity<ApiResponseDto> responseEntity = restTemplate.exchange(url, HttpMethod.DELETE, requestEntity, ApiResponseDto.class);
+
+        //then
+        assertThat(responseEntity.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(responseEntity.getBody().getSuccess()).isEqualTo(true);
+        assertThat(responseEntity.getBody().getError()).isEqualTo(null);
+        assertThat((Boolean) responseEntity.getBody().getResponse()).isEqualTo(true);
+
+        //check membershipStatus
+        Membership entity = membershipRepository.findByUserIdAndMembershipId(userId, membershipId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자의 membershipId가 없습니다. userId="+ userId + ",mebershipId=" + membershipId));
+
+        assertThat(entity.getMembershipId()).isEqualTo(membershipId);
+        assertThat(entity.getUserId()).isEqualTo(userId);
+        assertThat(entity.getMembershipStatus()).isEqualTo("N");
     }
 }

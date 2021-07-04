@@ -36,12 +36,12 @@ public class MembershipApiController {
         return new ResponseEntity<>(apiResponseDto, HttpStatus.OK);
     }
 
-    //TODO: 구현해야함
     @DeleteMapping("membership/{membershipId}")
     public ResponseEntity<?> deactivateMembership(
             @RequestHeader(value="X-USER-ID") String userId,
             @PathVariable("membershipId") String membershipId) {
         ApiResponseDto apiResponseDto = new ApiResponseDto(true, true, null);
+        membershipService.disable(userId, membershipId);
         return new ResponseEntity<>(apiResponseDto, HttpStatus.OK);
     }
 

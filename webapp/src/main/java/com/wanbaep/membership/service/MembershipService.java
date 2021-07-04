@@ -31,9 +31,14 @@ public class MembershipService {
 
     public MembershipResponseDto findById(String userId, String membershipId) {
         Membership entity = membershipRepository.findByUserIdAndMembershipId(userId, membershipId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 없습니다. userId="+ userId));
-
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자의 멤버십 아이디가 없습니다. userId=" + userId + " membershipId="+ membershipId));
         return new MembershipResponseDto(entity);
     }
 
+    @Transactional
+    public void disable(String userId, String membershipId) {
+        Membership entity = membershipRepository.findByUserIdAndMembershipId(userId, membershipId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자의 멤버십 아이디가 없습니다. userId=" + userId + " membershipId="+ membershipId));
+        entity.disable();
+    }
 }
